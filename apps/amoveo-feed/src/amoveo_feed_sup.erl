@@ -3,7 +3,7 @@
 -export([start_link/0]).
 -export([init/1]).
 -define(SERVER, ?MODULE).
--define(keys, [accounts]).
+-define(keys, [accounts, posts]).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
     supervisor:terminate_child(?MODULE, H),

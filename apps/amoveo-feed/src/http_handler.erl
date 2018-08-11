@@ -23,20 +23,17 @@ doit({post, SR}, _) ->
     ServerPubkey = base64:encode(utils:pubkey()),
     true = is_integer(Height),
     true = is_binary(Pubkey),
+    true = is_binary(Text),
+    true = size(Text) < config:max_post_size(),
     65 = size(Pubkey),
     {ok, NodeHeight} = packer:unpack(talker:talk_helper({height}, config:full_node(), 10)),
     true = NodeHeight < Height + 3,
     true = NodeHeight > Height - 1,
     Sig = element(3, SR),
     true = sign:verify_sig(R, Sig, Pubkey),
-    io:fwrite("submitting a post 2\n"),
-
-
-    io:fwrite("working here"),
-
-
-
-    {ok, 0};
+    accounts:spend(Pubkey, config:post_fee()),
+    ID = posts:new(Text),
+    {ok, ID};
 doit({test}, _) ->
     {ok, <<"success 2">>};
 doit({account, X}, _) ->

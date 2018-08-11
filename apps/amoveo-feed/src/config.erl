@@ -37,6 +37,8 @@ min_trade_time() ->%in seconds
     end.
 max_trade_time() ->
     12*60*60.%in seconds
+post_fee() ->
+    5000000. % 50 mVEO
 deposit_fee() ->
     70000.  %0.0007 veo
 trade_fee() ->
@@ -50,5 +52,8 @@ trades_cron_period() ->
 	test -> 3000;
 	production -> 40000%40 seconds
     end.
-
-	    
+max_post_size() ->
+    %in bytes
+    2000.
+history_to_remember() ->
+    100.
