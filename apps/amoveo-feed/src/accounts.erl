@@ -1,9 +1,9 @@
 -module(accounts).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	cron/0,get/1,withdrawal/1,lock/4,transfer_locked/4,unlock/3]).
+	cron/0,get/1,withdrawal/1,spend/2]).
 -record(d, {height, accounts}).
--record(acc, {veo = 0, locked = 0, rids = [], nonce = 0}).
+-record(acc, {veo = 0, nonce = 0}).
 -define(LOC, "accounts.db").
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -46,56 +46,23 @@ handle_cast({update, NewHeight}, X) ->
 	true -> X
     end,
     {noreply, X2};
-handle_cast({unlock, Pubkey, Amount, BitcoinAddress}, X) ->
-    Accs = X#d.accounts,
-    Account4 = dict:fetch(Pubkey, Accs),
-    TradeFailRefund = config:trade_fee_refund(),
-    Account5 = Account4#acc{
-		 locked = Account4#acc.locked - Amount, 
-		 veo = Account4#acc.veo + Amount + TradeFailRefund,
-		 rids = remove_from_list(BitcoinAddress, Account4#acc.rids)},
-    Accs2 = dict:store(Pubkey, Account5, Accs),
-    X2 = X#d{accounts = Accs2},
-    {noreply, X2};
-handle_cast({transfer_locked, From, To, Amount, BitcoinAddress}, X) -> 
-    Accs = X#d.accounts,
-    Account2 = case dict:find(To, Accs) of
-		   error -> #acc{};
-		   {ok, A} -> A
-	       end,
-    Account3 = Account2#acc{veo = Account2#acc.veo + Amount},
-    Account4 = dict:fetch(From, Accs),
-    Account5 = Account4#acc{
-		 locked = Account4#acc.locked - Amount,
-		 rids = remove_from_list(BitcoinAddress, Account3#acc.rids)},
-    Accs2 = dict:store(To, Account3, Accs),
-    Accs3 = dict:store(From, Account5, Accs2),
-    X2 = X#d{accounts = Accs3},
-    {noreply, X2};
-handle_cast(_, X) -> {noreply, X}.
-handle_call({lock, Pub, Amount, StartHeight, BitcoinAddress}, _, X) ->
+handle_cast({spend, Pub, Amount}, X) -> 
     Accs = X#d.accounts,
     {Q, X2} = 
 	case dict:find(Pub, Accs) of
 	    error -> {<<"account does not exist">>, X};
 	    {ok, A} ->
-		TradeFee = config:trade_fee(),
-		if 
-		    StartHeight =< A#acc.nonce ->
-			{<<"no request reuse">>, X};
-		    (Amount + TradeFee) > A#acc.veo -> {<<"you don't have enough veo to do that">>, X};
+		if
+		    Amount > A#acc.veo -> {<<"you don't have enough veo to do that">>, X};
 		    true ->
-			A2 = A#acc{nonce = StartHeight,
-				   veo = A#acc.veo - Amount - TradeFee,
-				   locked = A#acc.locked + Amount,
-				   rids = [BitcoinAddress|A#acc.rids]},
+			A2 = A#acc{veo = A#acc.veo - Amount},
 			Acc2 = dict:store(Pub, A2, Accs),
 			X3 = X#d{accounts = Acc2},
 			{success, X3}
 		end
 	end,
     {reply, Q, X2};
-
+handle_cast(_, X) -> {noreply, X}.
 handle_call({get, Pub}, _From, X) -> 
     Accs = X#d.accounts,
     Y = dict:find(Pub, Accs),
@@ -103,17 +70,14 @@ handle_call({get, Pub}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 withdrawal(Pub) -> gen_server:cast(?MODULE, {withdrawal, Pub}).
-lock(Pub, Amount, StartHeight, BitcoinAddress) -> gen_server:call(?MODULE, {lock, Pub, Amount, StartHeight, BitcoinAddress}).
+spend(Pub, Amount) ->
+    gen_server:cast(?MODULE, {spend, Pub, Amount}).
 update() -> 
     spawn(fun() ->
 		  Height = utils:height(veo),
 		  gen_server:cast(?MODULE, {update, Height})
 	  end).
 get(Pub) -> gen_server:call(?MODULE, {get, Pub}).
-transfer_locked(From, To, Amount, BitcoinAddress) ->
-    gen_server:cast(?MODULE, {transfer_locked, From, To, Amount, BitcoinAddress}).
-unlock(Pubkey, Amount, BitcoinAddress) ->
-    gen_server:cast(?MODULE, {unlock, Pubkey, Amount, BitcoinAddress}).
     
 receive_payments([], X, _) -> X;
 receive_payments([{_, Tx}|T], X, Pubkey) ->
@@ -138,13 +102,6 @@ rp2(From, A, D) ->
 	  end,
     Acc2 = Acc#acc{veo = Acc#acc.veo + A},
     dict:store(From, Acc2, D).
-remove_from_list(_, []) -> [];
-remove_from_list(X, [X|T]) -> T;
-remove_from_list(X, [A|T]) ->
-    [A|remove_from_list(X, T)].
-
-
-
 
 cron() ->
     spawn(fun() ->
