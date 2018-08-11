@@ -15,11 +15,17 @@ handle(Req, State) ->
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
     {ok, Req4, State}.
+doit({lookup, Start, Many}, _) ->
+    true = is_integer(Start),
+    true = is_integer(Many),
+    true = -1 < Start,
+    true = 0 < Many,
+    {ok, posts:lookup(Start, Many)};
 doit({post, SR}, _) ->
     io:fwrite("submitting a post\n"),
     %ok = trade_limit:doit(IP),
     R = element(2, SR),
-    {30, Pubkey, Height, Text} = R,
+    {30, Pubkey, Height, Text, ServerPubkey} = R,
     ServerPubkey = base64:encode(utils:pubkey()),
     true = is_integer(Height),
     true = is_binary(Pubkey),

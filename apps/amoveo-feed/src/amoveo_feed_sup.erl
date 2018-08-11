@@ -1,7 +1,7 @@
 -module(amoveo_feed_sup).
 -behaviour(supervisor).
 -export([start_link/0]).
--export([init/1]).
+-export([init/1, stop/0]).
 -define(SERVER, ?MODULE).
 -define(keys, [accounts, posts]).
 child_killer([]) -> [];

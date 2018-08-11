@@ -17,8 +17,8 @@ handle(Req, _) ->
                <<"/trade.js">> -> true;
                <<"/rpc.js">> -> true;
                <<"/lookup_account.js">> -> true;
-               <<"/lookup_trade.js">> -> true;
-               <<"/make_trade.js">> -> true;
+               <<"/display_posts.js">> -> true;
+               <<"/make_post.js">> -> true;
                <<"/withdrawal.js">> -> true;
                <<"/server_pub.js">> -> true;
                <<"/instructions.html">> -> true;

@@ -10,7 +10,9 @@ init(ok) ->
     utils:init(#d{}, ?LOC).
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, X) -> 
+    utils:save(X, ?LOC),
+    io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({censor, ID}, X) -> 
     P = X#d.posts,
@@ -24,10 +26,10 @@ handle_call({new, Text}, _From, X) ->
     NewPosts = add_post(New, X#d.posts),
     X2 = X#d{posts = NewPosts,
 	     id_counter = ID + 1},
-    {reply, ID, X2}.
+    {reply, ID, X2};
 handle_call({lookup, Start, Many}, _From, X) -> 
     PostsText = lookup_helper(Start, Many, X#d.posts),
-    {reply, PostsText, X}.
+    {reply, PostsText, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
 new(Text) ->%returns the ID of the new post.
@@ -37,7 +39,7 @@ lookup(Start, Many) ->
 censor(ID) ->
     gen_server:cast(?MODULE, {censor, ID}).
 
-censor_helper(ID, []) -> [];
+censor_helper(_, []) -> [];
 censor_helper(ID, [H|T]) when (H#post.id == ID) ->
     H2 = H#post{text = "censored"},
     [H2|T];
@@ -58,6 +60,6 @@ add_post(New, L) ->
 	     SL > H -> lists:droplast(L);
 	     true -> L
 	 end,
-    [New|L].
+    [New|L2].
 
 	    

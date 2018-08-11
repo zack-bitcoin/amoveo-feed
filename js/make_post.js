@@ -1,27 +1,19 @@
 
-(function trade() {
+(function post() {
     document.body.appendChild(document.createElement("br"));
     var div = document.createElement("div");
     document.body.appendChild(div);
 
     var button = document.createElement("input");
     button.type = "button";
-    button.value = "generate unsigned trade request";
+    button.value = "generate unsigned post request";
     button.onclick = generate_unsigned_request;
     var unsigned_div = document.createElement("div");
 
-    //inputs for all the info in a trade
+    //inputs for all the info in a post
+    // text
     //bitcoin_address, veo_to, time_limit, veo_amount, bitcoin_amount
-    var bitcoin_address = input_text_maker("bitcoin address that will receive bitcoins", div);
-    div.appendChild(document.createElement("br"));
-    var veo_to = input_text_maker("address that will receive VEO", div);
-    div.appendChild(document.createElement("br"));
-    var time_limit = input_text_maker("time limit in seconds. If the bitcoin doesn't arrive within this limit, then the veo is refunded", div);
-    div.appendChild(document.createElement("br"));
-    time_limit.value = "18000";
-    var veo_amount = input_text_maker("how many veo to sell", div);
-    div.appendChild(document.createElement("br"));
-    var bitcoin_amount = input_text_maker("how many bitcoin to buy", div);
+    var text = input_text_maker("text to post", div);
     div.appendChild(document.createElement("br"));
     
     var button2 = document.createElement("input");
@@ -44,19 +36,15 @@
     function generate_unsigned_request(){
 	variable_public_get(["height"], function(height) {
 	    variable_public_get(["pubkey"], function(server_pubkey) {
-		var ba2 = Math.floor(parseFloat(bitcoin_amount.value) * 100000000);
-		var va2 = Math.floor(parseFloat(veo_amount.value) * 100000000);
-		var request = [-7, 29, pubkey.value, height, btoa(bitcoin_address.value), veo_to.value, parseInt(time_limit.value), va2, ba2, server_pubkey];
+		var request = [-7, 30, pubkey.value, height, btoa(text.value), server_pubkey];
 		unsigned_div.innerHTML = JSON.stringify(request);
 	    });
 	});
     };
     function publish_signed_request(){
 	var sr = JSON.parse(signed.value);
-	variable_public_get(["trade", sr], function(x) {
+	variable_public_get(["post", sr], function(x) {
 	    console.log("publish signed request");
 	});
-
     }
-
 })();
