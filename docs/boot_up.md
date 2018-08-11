@@ -1,12 +1,17 @@
 
 
 
-===  turn it on
+===  re-compile and turn it on
 ```
 sh start.sh
 ```
 
-=== attach to exchange so you can issue commands
+=== start already compiled software
+```
+sh quick_start.sh
+```
+
+=== attach to software so you can issue commands
 ```
 sh attach.sh
 ```
