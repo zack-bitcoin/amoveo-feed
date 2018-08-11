@@ -1,9 +1,8 @@
 amoveo-feed
 =====
 
-An OTP application
+This is for hosting a website similar to Reddit. There is a cost in VEO for posting to this page.
 
-Build
------
+[installation](docs/installation.md)
 
-    $ rebar3 compile
+[turn it on](docs/boot_up.md)

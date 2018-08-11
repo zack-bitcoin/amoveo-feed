@@ -56,8 +56,8 @@ total_received_bitcoin(Address) ->
     {ok, {_, _, Result}} = httpc:request(S2),
     list_to_integer(Result).
 off() ->
-    amoveo_exchange_sup:stop(),
-    ok = application:stop(amoveo_exchange),
+    amoveo_feed_sup:stop(),
+    ok = application:stop(amoveo_feed),
     ok.
     
 
