@@ -25,7 +25,7 @@
     
     var button2 = document.createElement("input");
     button2.type = "button";
-    button2.value = "publish signed trade request";
+    button2.value = "publish signed post request";
     button2.onclick = publish_signed_request;
     var signed = document.createElement("input");
     signed.type = "text";
