@@ -8,7 +8,7 @@
     div.appendChild(document.createElement("br"));
 
     var many = input_text_maker("many", div);
-    many.value = "100000";
+    many.value = "10";
     div.appendChild(document.createElement("br"));
 
     var button = document.createElement("input");
