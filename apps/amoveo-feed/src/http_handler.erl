@@ -15,6 +15,9 @@ handle(Req, State) ->
     {<<"Access-Control-Allow-Origin">>, <<"*">>}],
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
     {ok, Req4, State}.
+doit({price}, _) ->
+    {_, P} = posts:price(),
+    {ok, P};
 doit({lookup, Start, Many}, _) ->
     true = is_integer(Start),
     true = is_integer(Many),
@@ -37,8 +40,9 @@ doit({post, SR}, _) ->
     true = NodeHeight > Height - 1,
     Sig = element(3, SR),
     true = sign:verify_sig(R, Sig, Pubkey),
-    accounts:spend(Pubkey, config:post_fee()),
-    ID = posts:new(Text),
+    true = accounts:nonce_below(Pubkey, Height),
+    {ID, Price} = posts:new(Text),
+    accounts:spend(Pubkey, Price, Height),
     {ok, ID};
 doit({test}, _) ->
     {ok, <<"success 2">>};

@@ -57,3 +57,6 @@ max_post_size() ->
     2000.
 history_to_remember() ->
     100.
+target_posts_per_month() ->
+    60.
+    

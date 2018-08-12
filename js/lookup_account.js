@@ -26,12 +26,12 @@ function lookup_account1() {
 	} else {
 	    console.log(x);
 	    var bal = x[1];
-	    var locked = x[2];
-	    var trades = x[3];
-	    var bal = x[1];
-	    var locked = x[2];
-	    var trades = x[3].slice(1);
-	    var s = "balance = ".concat(bal.toString()).concat(", locked veo = ".concat(locked.toString()).concat(", trade ids ").concat(JSON.stringify(decode_trades(trades))));
+	    //var locked = x[2];
+	    //var trades = x[3];
+	    //var bal = x[1];
+	    //var locked = x[2];
+	    //var trades = x[3].slice(1);
+	    var s = "balance = ".concat(bal.toString());
 	    lookup_account.innerHTML = s;
 	}
 	//veo, locked veo, request ids

@@ -10,9 +10,16 @@
     button.onclick = generate_unsigned_request;
     var unsigned_div = document.createElement("div");
 
-    //inputs for all the info in a post
-    // text
-    //bitcoin_address, veo_to, time_limit, veo_amount, bitcoin_amount
+    var price_check = document.createElement("input");
+    price_check.type = "button";
+    price_check.value = "check price";
+    price_check.onclick = check_the_price;
+
+    div.appendChild(price_check);
+    var price_val = document.createElement("div");
+    div.appendChild(price_val);
+    div.appendChild(document.createElement("br"));
+    
     var text = input_text_maker("text to post", div);
     div.appendChild(document.createElement("br"));
     
@@ -45,6 +52,13 @@
 	var sr = JSON.parse(signed.value);
 	variable_public_get(["post", sr], function(x) {
 	    console.log("publish signed request");
+	});
+    }
+    function check_the_price() {
+	variable_public_get(["price"], function(p) {
+	    console.log("price is ");
+	    console.log(p);
+	    price_val.innerHTML = (p).toString();
 	});
     }
 })();

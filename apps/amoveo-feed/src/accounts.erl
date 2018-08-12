@@ -1,7 +1,7 @@
 -module(accounts).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-	cron/0,get/1,withdrawal/1,spend/2]).
+	cron/0,get/1,withdrawal/1,spend/3,nonce_below/2]).
 -record(d, {height, accounts}).
 -record(acc, {veo = 0, nonce = 0}).
 -define(LOC, "accounts.db").
@@ -46,22 +46,22 @@ handle_cast({update, NewHeight}, X) ->
 	true -> X
     end,
     {noreply, X2};
-handle_cast({spend, Pub, Amount}, X) -> 
+handle_cast({spend, Pub, Amount, Height}, X) -> 
     Accs = X#d.accounts,
-    {Q, X2} = 
+    {_Q, X2} = 
 	case dict:find(Pub, Accs) of
 	    error -> {<<"account does not exist">>, X};
 	    {ok, A} ->
 		if
 		    Amount > A#acc.veo -> {<<"you don't have enough veo to do that">>, X};
 		    true ->
-			A2 = A#acc{veo = A#acc.veo - Amount},
+			A2 = A#acc{veo = A#acc.veo - Amount, nonce = Height},
 			Acc2 = dict:store(Pub, A2, Accs),
 			X3 = X#d{accounts = Acc2},
 			{success, X3}
 		end
 	end,
-    {reply, Q, X2};
+    {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({get, Pub}, _From, X) -> 
     Accs = X#d.accounts,
@@ -70,8 +70,8 @@ handle_call({get, Pub}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 withdrawal(Pub) -> gen_server:cast(?MODULE, {withdrawal, Pub}).
-spend(Pub, Amount) ->
-    gen_server:cast(?MODULE, {spend, Pub, Amount}).
+spend(Pub, Amount, Height) ->
+    gen_server:cast(?MODULE, {spend, Pub, Amount, Height}).
 update() -> 
     spawn(fun() ->
 		  Height = utils:height(veo),
@@ -102,6 +102,11 @@ rp2(From, A, D) ->
 	  end,
     Acc2 = Acc#acc{veo = Acc#acc.veo + A},
     dict:store(From, Acc2, D).
+
+nonce_below(Pub, H) ->
+    {ok, A} = accounts:get(Pub),
+    N = A#acc.nonce,
+    H > N.
 
 cron() ->
     spawn(fun() ->
