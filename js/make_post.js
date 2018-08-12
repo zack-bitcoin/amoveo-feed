@@ -58,7 +58,7 @@
 	variable_public_get(["price"], function(p) {
 	    console.log("price is ");
 	    console.log(p);
-	    price_val.innerHTML = (p).toString();
+	    price_val.innerHTML = (p / 100000).toString().concat(" mVEO");
 	});
     }
 })();
